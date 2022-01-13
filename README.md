@@ -2,15 +2,11 @@
 
 A minimalistic backend to store values at runtime.
 
-
-
 # Installation
 
 Copy settings_example.json to settings.json
 
 Adjust it to your needs.
-
-
 
 # Usage
 
@@ -37,10 +33,10 @@ ttl?: 300, // milliseconds to live
 
 will result in value `foo baz 123` 
 
-
-
-
-
 ## GET /:key
 
 returns value stored in key
+
+# Caution
+
+If service is stopped for whatever reason all values are lost forever.
