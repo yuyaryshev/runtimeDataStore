@@ -8,15 +8,29 @@ interface ServerSettings {
     port: number;
     varDelimiter?: string;
     vars?: any;
+    settingsRefreshInterval?: number;
+    staleTimer?: any;
 }
 
 export function readSettings(): ServerSettings {
     const settings = Object.assign({ port: 3000, vars: {} }, parse(readFileSync("settings.json", "utf-8")));
+    settings.staleTimer = setTimeout(() => {
+        delete settings.staleTimer;
+    }, settings.settingsRefreshInterval || 5000);
     return settings;
 }
 
 export function startServer(settings: ServerSettings = readSettings()) {
     const port = settings.port;
+    function refreshSettingsIfStale() {
+        if (!settings.staleTimer) {
+            try {
+                settings = readSettings();
+            } catch (e: any) {
+                console.warn(`CODE00000000 Error: refresh settings failed because of error:\n${e.code || ""} ${e.message}\n\n${e.stack}`);
+            }
+        }
+    }
 
     const app = express();
     app.use(express.json());
@@ -25,6 +39,7 @@ export function startServer(settings: ServerSettings = readSettings()) {
     const timers: any = {};
 
     app.get("/:key", (req, res) => {
+        refreshSettingsIfStale();
         const key = req.params.key || "";
         res.send(runtimeStore[key] || "");
     });
@@ -32,6 +47,7 @@ export function startServer(settings: ServerSettings = readSettings()) {
     const varDelimiter = settings.varDelimiter || "$$";
 
     app.post("/:key", function (req, res) {
+        refreshSettingsIfStale();
         const key = req.params.key || "";
         let { ttl, value } = req.body;
         const valueStr = JSON.stringify(value);
