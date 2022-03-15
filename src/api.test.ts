@@ -9,7 +9,7 @@ describe(`api.test.ts`, () => {
             url: "http://localhost:3000/key2",
             data: {
                 value: { y: "ha-ha-ha $$testVar.a1$$" },
-                ttl: 300,
+                ttl: 3000000,
             },
         });
 
@@ -66,5 +66,22 @@ describe(`api.test.ts`, () => {
             url: "http://localhost:3000/key123",
         });
         expect(r2.data).to.deep.equal("");
+    });
+
+    it(`string result`, async () => {
+        await axios({
+            method: "post",
+            url: "http://localhost:3000/str_value",
+            data: {
+                value: "ha-ha-ha $$testVar.a1$$",
+                ttl: 3000000,
+            },
+        });
+
+        const r1 = await axios({
+            method: "get",
+            url: "http://localhost:3000/str_value",
+        });
+        expect(r1.data).to.deep.equal("ha-ha-ha aaa");
     });
 });
