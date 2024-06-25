@@ -27,7 +27,7 @@ export function startServer(settings: ServerSettings = readSettings()) {
             try {
                 settings = readSettings();
             } catch (e: any) {
-                console.warn(`CODE00000000 Error: refresh settings failed because of error:\n${e.code || ""} ${e.message}\n\n${e.stack}`);
+                console.warn(`CODE00000002 Error: refresh settings failed because of error:\n${e.code || ""} ${e.message}\n\n${e.stack}`);
             }
         }
     }
@@ -35,10 +35,21 @@ export function startServer(settings: ServerSettings = readSettings()) {
     const app = express();
     app.use(express.json());
 
+    // Enable CORS for all routes
+    app.use((req:any, res:any, next:any) => {
+        res.header('Access-Control-Allow-Origin', '*');
+        res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        res.header('Access-Control-Allow-Headers', 'Origin, Content-Type, Accept, Authorization');
+        if (req.method === 'OPTIONS') {
+            return res.sendStatus(204);
+        }
+        next();
+    });
+
     const runtimeStore: any = {};
     const timers: any = {};
 
-    app.get("/:key", (req, res) => {
+    app.get("/:key", (req:any, res:any) => {
         refreshSettingsIfStale();
         const key = req.params.key || "";
         res.send(runtimeStore[key] || "");
@@ -46,7 +57,7 @@ export function startServer(settings: ServerSettings = readSettings()) {
 
     const varDelimiter = settings.varDelimiter || "$$";
 
-    app.post("/:key", function (req, res) {
+    app.post("/:key", function (req:any, res:any) {
         refreshSettingsIfStale();
         const key = req.params.key || "";
         let { ttl, value } = req.body;
